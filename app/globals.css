@@ -1,0 +1,221 @@
+:root {
+  color-scheme: light;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", Arial, sans-serif;
+  --bg: #f5f5f7;
+  --bg-soft: #ffffff;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --card: rgba(255, 255, 255, 0.9);
+  --stroke: rgba(29, 29, 31, 0.12);
+  --accent-lilac: #a8a4ff;
+  --accent-sky: #9ad2ff;
+  --accent-mint: #b5f0d5;
+  --shadow: 0 18px 30px rgba(29, 29, 31, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at top, #ffffff 0%, #f5f5f7 55%, #ededf0 100%);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: -20% 0 0 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(154, 206, 255, 0.2), transparent 55%),
+    radial-gradient(circle at 80% 10%, rgba(189, 188, 255, 0.2), transparent 60%),
+    radial-gradient(circle at 70% 80%, rgba(181, 245, 212, 0.22), transparent 55%);
+  pointer-events: none;
+  z-index: -2;
+  animation: drift 24s ease-in-out infinite alternate;
+}
+
+body::after {
+  opacity: 0.4;
+  filter: blur(20px);
+  animation-delay: -6s;
+}
+
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 72px 24px 96px;
+  display: grid;
+  gap: 32px;
+}
+
+
+.cards {
+  display: grid;
+  gap: 20px;
+}
+
+.cards > div {
+  animation: rise 0.8s ease both;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--stroke);
+  border-radius: 24px;
+  padding: 28px 28px 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  display: grid;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  inset: -20% -35% auto auto;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent) 0%, transparent 70%);
+  opacity: 0.35;
+  filter: blur(10px);
+  transform: translate3d(0, 0, 0);
+  animation: pulse 8s ease-in-out infinite;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.percent {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.range {
+  display: flex;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  align-items: center;
+}
+
+.divider {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.progress-track {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(29, 29, 31, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(120deg, var(--accent), #ffffff, var(--accent));
+  background-size: 200% 100%;
+  animation: shimmer 4s ease infinite;
+  transition: width 0.9s ease;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.progress-glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+  filter: blur(10px);
+  opacity: 0.35;
+  transition: width 0.9s ease;
+}
+
+.meta {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(0, -18px, 0) scale(1.02);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate3d(-8px, -4px, 0) scale(1.05);
+    opacity: 0.65;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 56px 20px 80px;
+  }
+
+  .card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
