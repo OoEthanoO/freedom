@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Progress",
+  title: "freedom",
   description: "Progress bars for semester, school year, and high school."
 };
 

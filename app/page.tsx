@@ -19,21 +19,21 @@ type ProgressItem = {
 const items: ProgressItem[] = [
   {
     id: "semester",
-    title: "Semester progress",
+    title: "Semester",
     start: new Date(2025, 8, 2),
     end: new Date(2026, 1, 2),
     accent: "var(--accent-lilac)",
   },
   {
     id: "school-year",
-    title: "School year progress",
+    title: "School year",
     start: new Date(2025, 8, 2),
-    end: new Date(2025, 5, 24),
+    end: new Date(2026, 5, 24),
     accent: "var(--accent-sky)",
   },
   {
     id: "high-school",
-    title: "High school progress",
+    title: "High school",
     start: new Date(2023, 8, 5),
     end: new Date(2027, 5, 25),
     accent: "var(--accent-mint)",
@@ -66,23 +66,19 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   );
 
   return (
-    <article className="card" style={{ "--accent": item.accent } as CSSProperties}>
-      <div className="card-top">
-        <h2>{item.title}</h2>
+    <article className="row" style={{ "--accent": item.accent } as CSSProperties}>
+      <div className="row-top">
+        <h2 className="row-title">{item.title}</h2>
         <span className="percent" aria-label={`${percent}% complete`}>
           {percent}%
         </span>
       </div>
       <div className="range">
         <span>{formatDate(item.start)}</span>
-        <span className="divider" aria-hidden="true">
-          to
-        </span>
         <span>{formatDate(item.end)}</span>
       </div>
       <div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
         <div className="progress-fill" style={{ width: `${percent}%` }} />
-        <div className="progress-glow" style={{ width: `${percent}%` }} />
       </div>
       <div className="meta">
         <span>{daysLeft} days left</span>
@@ -113,6 +109,12 @@ export default function Home() {
           </div>
         ))}
       </section>
+      <footer className="footer">
+        <a className="credit" href="https://ethanyanxu.com" rel="noreferrer">
+          <span className="credit-text">Made with ❤️ by Ethan Yan Xu</span>
+          <span className="credit-sheen" aria-hidden="true" />
+        </a>
+      </footer>
     </main>
   );
 }
