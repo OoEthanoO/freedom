@@ -144,7 +144,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(Date.now());
-    }, 60_000);
+    }, 1_000);
 
     return () => clearInterval(interval);
   }, []);
