@@ -25,14 +25,14 @@ const items: ProgressItem[] = [
     accent: "var(--accent-lilac)",
   },
   {
-    id: "school-year",
+    id: "year",
     title: "School year",
     start: new Date(2025, 8, 2),
     end: new Date(2026, 5, 24),
     accent: "var(--accent-sky)",
   },
   {
-    id: "high-school",
+    id: "school",
     title: "High school",
     start: new Date(2023, 8, 5),
     end: new Date(2027, 5, 25),
@@ -77,6 +77,14 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   ];
 
   const currentLabel = options.find(opt => opt.value === unit)?.label;
+
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/${item.id}/${unit}` : "";
+
+  const copyShareLink = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -133,6 +141,21 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
             </div>
           )}
         </div>
+        <button
+          onClick={copyShareLink}
+          style={{
+            background: "linear-gradient(135deg, rgba(29, 29, 31, 0.04), rgba(29, 29, 31, 0.02))",
+            border: "1px solid var(--stroke)",
+            borderRadius: "6px",
+            padding: "6px 10px",
+            fontSize: "0.8rem",
+            color: "var(--muted)",
+            cursor: "pointer",
+          }}
+          aria-label="Copy share link"
+        >
+          Share
+        </button>
       </div>
     </article>
   );
