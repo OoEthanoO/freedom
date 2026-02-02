@@ -107,6 +107,7 @@ body {
   gap: 12px;
   font-size: 0.8rem;
   color: var(--muted);
+  align-items: center;
 }
 
 .dropdown {
@@ -198,6 +199,27 @@ body {
 
 .dropdown-option:not(:last-child) {
   border-bottom: 1px solid var(--stroke);
+}
+
+.copy-feedback {
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: rgba(29, 29, 31, 0.04);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.copy-feedback.copied {
+  color: #1b6e3c;
+  border-color: rgba(27, 110, 60, 0.25);
+  background: rgba(27, 110, 60, 0.08);
+}
+
+.copy-feedback.error {
+  color: #b3261e;
+  border-color: rgba(179, 38, 30, 0.25);
+  background: rgba(179, 38, 30, 0.08);
 }
 
 .footer {

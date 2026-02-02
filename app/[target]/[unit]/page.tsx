@@ -9,13 +9,31 @@ const dateFormat = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   year: "numeric"
 });
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-const items = {
+const items: Record<Target, {
+  title: string;
+  accent: string;
+  start?: Date;
+  end?: Date;
+  getRange?: (now: number) => { start: Date; end: Date };
+}> = {
   semester: {
     title: "Semester",
-    start: new Date(2025, 8, 2),
-    end: new Date(2026, 1, 2),
     accent: "var(--accent-lilac)",
+    getRange: (now: number) => {
+      const cutoff = new Date(2026, 1, 2, 11, 45).getTime();
+      if (now >= cutoff) {
+        return {
+          start: new Date(2026, 1, 2, 11, 45),
+          end: new Date(2026, 5, 24, 0, 0),
+        };
+      }
+      return {
+        start: new Date(2025, 8, 2),
+        end: new Date(2026, 1, 2, 11, 45),
+      };
+    },
   },
   year: {
     title: "School year",
@@ -31,13 +49,19 @@ const items = {
   },
 };
 
+const calculateDateDiffInDays = (end: Date, now: Date) => {
+  const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+  const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.max(0, Math.round((endUtc - nowUtc) / MS_PER_DAY));
+};
+
 const calculateTimeLeft = (end: Date, unit: Unit): number => {
-  const now = Date.now();
-  const timeLeftMs = Math.max(0, end.getTime() - now);
+  const now = new Date();
+  const timeLeftMs = Math.max(0, end.getTime() - now.getTime());
   
   switch (unit) {
     case "days":
-      return Math.ceil(timeLeftMs / (1000 * 60 * 60 * 24));
+      return calculateDateDiffInDays(end, now);
     case "hours":
       return Math.ceil(timeLeftMs / (1000 * 60 * 60));
     case "seconds":
@@ -62,6 +86,13 @@ const calculateProgress = (start: Date, end: Date): number => {
 
 const formatDate = (date: Date) => dateFormat.format(date);
 
+const resolveRange = (item: typeof items[Target]) => {
+  if (item.getRange) {
+    return item.getRange(Date.now());
+  }
+  return { start: item.start!, end: item.end! };
+};
+
 export async function generateMetadata({
   params,
 }: {
@@ -77,7 +108,8 @@ export async function generateMetadata({
   }
 
   const item = items[target];
-  const timeLeft = calculateTimeLeft(item.end, unit);
+  const range = resolveRange(item);
+  const timeLeft = calculateTimeLeft(range.end, unit);
   const description = `${timeLeft} ${unit} left until ${item.title} ends`;
 
   return {
@@ -109,8 +141,9 @@ export default function SharePage({
   }
 
   const item = items[target];
-  const timeLeft = calculateTimeLeft(item.end, unit);
-  const percent = calculateProgress(item.start, item.end);
+  const range = resolveRange(item);
+  const timeLeft = calculateTimeLeft(range.end, unit);
+  const percent = calculateProgress(range.start, range.end);
 
   return (
     <main className="page">
@@ -123,8 +156,8 @@ export default function SharePage({
             </span>
           </div>
           <div className="range">
-            <span>{formatDate(item.start)}</span>
-            <span>{formatDate(item.end)}</span>
+            <span>{formatDate(range.start)}</span>
+            <span>{formatDate(range.end)}</span>
           </div>
           <div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
             <div className="progress-fill" style={{ width: `${percent}%` }} />

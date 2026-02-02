@@ -11,18 +11,30 @@ const dateFormat = new Intl.DateTimeFormat("en-US", {
 type ProgressItem = {
   id: string;
   title: string;
-  start: Date;
-  end: Date;
   accent: string;
+  getRange?: (now: number) => { start: Date; end: Date };
+  start?: Date;
+  end?: Date;
 };
 
 const items: ProgressItem[] = [
   {
     id: "semester",
     title: "Semester",
-    start: new Date(2025, 8, 2),
-    end: new Date(2026, 1, 2),
     accent: "var(--accent-lilac)",
+    getRange: (now: number) => {
+      const cutoff = new Date(2026, 1, 2, 11, 45).getTime();
+      if (now >= cutoff) {
+        return {
+          start: new Date(2026, 1, 2, 11, 45),
+          end: new Date(2026, 5, 24, 0, 0),
+        };
+      }
+      return {
+        start: new Date(2025, 8, 2),
+        end: new Date(2026, 1, 2, 11, 45),
+      };
+    },
   },
   {
     id: "year",
@@ -51,14 +63,24 @@ const normalizeRange = (start: number, end: number) => {
 };
 
 const formatDate = (date: Date) => dateFormat.format(date);
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const calculateDateDiffInDays = (end: Date, now: Date) => {
+  const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+  const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.max(0, Math.round((endUtc - nowUtc) / MS_PER_DAY));
+};
 
 const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const [unit, setUnit] = useState<"days" | "hours" | "seconds">("days");
   const [isOpen, setIsOpen] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const copyTimeoutRef = useRef<number | null>(null);
   
-  const startMs = item.start.getTime();
-  const endMs = item.end.getTime();
+  const range = item.getRange ? item.getRange(now) : { start: item.start!, end: item.end! };
+  const startMs = range.start.getTime();
+  const endMs = range.end.getTime();
   const normalized = normalizeRange(startMs, endMs);
   const total = normalized.end - normalized.start;
   const elapsed = clamp(now - normalized.start, 0, total);
@@ -66,7 +88,7 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const percent = Math.round(ratio * 1000) / 10;
   
   const timeLeftMs = Math.max(0, normalized.end - now);
-  const daysLeft = Math.ceil(timeLeftMs / (1000 * 60 * 60 * 24));
+  const daysLeft = calculateDateDiffInDays(range.end, new Date(now));
   const hoursLeft = Math.ceil(timeLeftMs / (1000 * 60 * 60));
   const secondsLeft = Math.ceil(timeLeftMs / 1000);
 
@@ -80,9 +102,32 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/${item.id}/${unit}` : "";
 
-  const copyShareLink = () => {
-    if (shareUrl) {
-      navigator.clipboard.writeText(shareUrl);
+  const clearCopyTimeout = () => {
+    if (copyTimeoutRef.current !== null) {
+      window.clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = null;
+    }
+  };
+
+  const setCopyFeedback = (status: "copied" | "error") => {
+    setCopyStatus(status);
+    clearCopyTimeout();
+    copyTimeoutRef.current = window.setTimeout(() => {
+      setCopyStatus("idle");
+      copyTimeoutRef.current = null;
+    }, 2000);
+  };
+
+  const copyShareLink = async () => {
+    if (!shareUrl || !navigator.clipboard) {
+      setCopyFeedback("error");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopyFeedback("copied");
+    } catch {
+      setCopyFeedback("error");
     }
   };
 
@@ -99,6 +144,10 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    return () => clearCopyTimeout();
+  }, []);
+
   return (
     <article className="row" style={{ "--accent": item.accent } as CSSProperties}>
       <div className="row-top">
@@ -108,8 +157,8 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
         </span>
       </div>
       <div className="range">
-        <span>{formatDate(item.start)}</span>
-        <span>{formatDate(item.end)}</span>
+        <span>{formatDate(range.start)}</span>
+        <span>{formatDate(range.end)}</span>
       </div>
       <div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
         <div className="progress-fill" style={{ width: `${percent}%` }} />
@@ -134,28 +183,33 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
                     setUnit(option.value);
                     setIsOpen(false);
                   }}
+                  type="button"
                 >
                   {option.label}
                 </button>
               ))}
+              <button
+                className="dropdown-option"
+                onClick={() => {
+                  copyShareLink();
+                  setIsOpen(false);
+                }}
+                type="button"
+              >
+                Share link
+              </button>
             </div>
           )}
         </div>
-        <button
-          onClick={copyShareLink}
-          style={{
-            background: "linear-gradient(135deg, rgba(29, 29, 31, 0.04), rgba(29, 29, 31, 0.02))",
-            border: "1px solid var(--stroke)",
-            borderRadius: "6px",
-            padding: "6px 10px",
-            fontSize: "0.8rem",
-            color: "var(--muted)",
-            cursor: "pointer",
-          }}
-          aria-label="Copy share link"
-        >
-          Share
-        </button>
+        {copyStatus !== "idle" && (
+          <span
+            className={`copy-feedback ${copyStatus}`}
+            role="status"
+            aria-live="polite"
+          >
+            {copyStatus === "copied" ? "Link copied" : "Copy failed"}
+          </span>
+        )}
       </div>
     </article>
   );
