@@ -47,7 +47,7 @@ const items: ProgressItem[] = [
     id: "school",
     title: "High school",
     start: new Date(2023, 8, 5),
-    end: new Date(2027, 5, 25),
+    end: new Date(2027, 4, 21),
     accent: "var(--accent-mint)",
   }
 ];
@@ -77,7 +77,7 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const copyTimeoutRef = useRef<number | null>(null);
-  
+
   const range = item.getRange ? item.getRange(now) : { start: item.start!, end: item.end! };
   const startMs = range.start.getTime();
   const endMs = range.end.getTime();
@@ -86,7 +86,7 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const elapsed = clamp(now - normalized.start, 0, total);
   const ratio = total === 0 ? 0 : elapsed / total;
   const percent = Math.round(ratio * 1000) / 10;
-  
+
   const timeLeftMs = Math.max(0, normalized.end - now);
   const daysLeft = calculateDateDiffInDays(range.end, new Date(now));
   const hoursLeft = Math.ceil(timeLeftMs / (1000 * 60 * 60));
