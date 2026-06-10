@@ -110,6 +110,18 @@ body {
   align-items: center;
 }
 
+.rate {
+  background: linear-gradient(135deg, rgba(29, 29, 31, 0.04), rgba(29, 29, 31, 0.02));
+  border: 1px solid var(--stroke);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+}
+
 .dropdown {
   position: relative;
   display: inline-block;

@@ -92,6 +92,15 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const hoursLeft = Math.ceil(timeLeftMs / (1000 * 60 * 60));
   const secondsLeft = Math.ceil(timeLeftMs / 1000);
 
+  const ratePerMs = total === 0 ? 0 : 100 / total;
+  const rates = {
+    days: ratePerMs * MS_PER_DAY,
+    hours: ratePerMs * (1000 * 60 * 60),
+    seconds: ratePerMs * 1000,
+  };
+  const currentRate = rates[unit];
+  const rateFormatted = currentRate === 0 ? "0" : currentRate < 1e-6 ? currentRate.toExponential(2) : Number(currentRate.toPrecision(3)).toString();
+
   const options: { value: "days" | "hours" | "seconds"; label: string }[] = [
     { value: "days", label: `${daysLeft} days left` },
     { value: "hours", label: `${hoursLeft} hours left` },
@@ -164,6 +173,9 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
         <div className="progress-fill" style={{ width: `${percent}%` }} />
       </div>
       <div className="meta">
+        <span className="rate" aria-label={`Rate: +${rateFormatted}% per ${unit.slice(0, -1)}`}>
+          +{rateFormatted}% / {unit.slice(0, -1)}
+        </span>
         <div className="dropdown" ref={dropdownRef}>
           <button
             className="dropdown-button"
