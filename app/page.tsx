@@ -173,9 +173,6 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
         <div className="progress-fill" style={{ width: `${percent}%` }} />
       </div>
       <div className="meta">
-        <span className="rate" aria-label={`Rate: +${rateFormatted}% per ${unit.slice(0, -1)}`}>
-          +{rateFormatted}% / {unit.slice(0, -1)}
-        </span>
         <div className="dropdown" ref={dropdownRef}>
           <button
             className="dropdown-button"
@@ -213,6 +210,9 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
             </div>
           )}
         </div>
+        <span className="rate" aria-label={`Rate: +${rateFormatted}% per ${unit.slice(0, -1)}`}>
+          +{rateFormatted}% / {unit.slice(0, -1)}
+        </span>
         {copyStatus !== "idle" && (
           <span
             className={`copy-feedback ${copyStatus}`}

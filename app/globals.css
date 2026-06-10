@@ -114,7 +114,8 @@ body {
   background: linear-gradient(135deg, rgba(29, 29, 31, 0.04), rgba(29, 29, 31, 0.02));
   border: 1px solid var(--stroke);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 0 10px;
+  height: 32px;
   font-size: 0.8rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -131,7 +132,8 @@ body {
   background: linear-gradient(135deg, rgba(29, 29, 31, 0.04), rgba(29, 29, 31, 0.02));
   border: 1px solid var(--stroke);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 0 10px;
+  height: 32px;
   font-size: 0.8rem;
   color: var(--muted);
   font-family: var(--font-sans);
