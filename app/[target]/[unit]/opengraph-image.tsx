@@ -6,6 +6,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const items = {
+  summer: { title: "Summer break", end: new Date(2026, 8, 7, 23, 59, 59) },
   semester: { title: "Semester", end: new Date(2026, 1, 2) },
   year: { title: "School year", end: new Date(2026, 5, 24) },
   school: { title: "High school", end: new Date(2027, 5, 25) },

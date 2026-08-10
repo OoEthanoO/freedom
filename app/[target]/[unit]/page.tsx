@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-type Target = "semester" | "year" | "school";
+type Target = "summer" | "semester" | "year" | "school";
 type Unit = "days" | "hours" | "seconds";
 
 const dateFormat = new Intl.DateTimeFormat("en-US", {
@@ -18,6 +18,12 @@ const items: Record<Target, {
   end?: Date;
   getRange?: (now: number) => { start: Date; end: Date };
 }> = {
+  summer: {
+    title: "Summer break",
+    start: new Date(2026, 5, 25),
+    end: new Date(2026, 8, 7, 23, 59, 59),
+    accent: "var(--accent-peach)",
+  },
   semester: {
     title: "Semester",
     accent: "var(--accent-lilac)",

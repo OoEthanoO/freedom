@@ -15,13 +15,23 @@ type ProgressItem = {
   getRange?: (now: number) => { start: Date; end: Date };
   start?: Date;
   end?: Date;
+  /** Kept in the codebase but not rendered on the home page. */
+  hidden?: boolean;
 };
 
 const items: ProgressItem[] = [
   {
+    id: "summer",
+    title: "Summer break",
+    start: new Date(2026, 5, 25),
+    end: new Date(2026, 8, 7, 23, 59, 59),
+    accent: "var(--accent-peach)",
+  },
+  {
     id: "semester",
     title: "Semester",
     accent: "var(--accent-lilac)",
+    hidden: true,
     getRange: (now: number) => {
       const cutoff = new Date(2026, 1, 2, 11, 45).getTime();
       if (now >= cutoff) {
@@ -42,6 +52,7 @@ const items: ProgressItem[] = [
     start: new Date(2025, 8, 2),
     end: new Date(2026, 5, 24),
     accent: "var(--accent-sky)",
+    hidden: true,
   },
   {
     id: "school",
@@ -238,7 +249,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const displayed = useMemo(() => items, []);
+  const displayed = useMemo(() => items.filter(item => !item.hidden), []);
 
   return (
     <main className="page">
