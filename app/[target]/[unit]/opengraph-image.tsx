@@ -5,10 +5,18 @@ export const alt = "Progress tracker";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const getSemesterEnd = (now: number) => {
+  const firstSemesterEnd = new Date(2027, 1, 3, 23, 59, 59);
+  if (now > firstSemesterEnd.getTime()) {
+    return new Date(2027, 4, 21, 23, 59, 59);
+  }
+  return firstSemesterEnd;
+};
+
 const items = {
   summer: { title: "Summer break", end: new Date(2026, 8, 7, 23, 59, 59) },
-  semester: { title: "Semester", end: new Date(2026, 1, 2) },
-  year: { title: "School year", end: new Date(2026, 5, 24) },
+  semester: { title: "Semester", getEnd: getSemesterEnd },
+  year: { title: "School year", end: new Date(2027, 4, 21, 23, 59, 59) },
   school: { title: "High school", end: new Date(2027, 5, 25) },
 };
 
@@ -24,7 +32,11 @@ export default async function Image({
   if (!item) return new ImageResponse(<div>Not Found</div>);
 
   const now = Date.now();
-  const timeLeftMs = Math.max(0, item.end.getTime() - now);
+  const end =
+    "getEnd" in item && typeof (item as { getEnd?: (now: number) => Date }).getEnd === "function"
+      ? (item as { getEnd: (now: number) => Date }).getEnd(now)
+      : (item as { end: Date }).end;
+  const timeLeftMs = Math.max(0, end.getTime() - now);
   let timeLeft = 0;
 
   switch (unit) {

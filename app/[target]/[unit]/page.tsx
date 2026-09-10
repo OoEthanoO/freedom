@@ -28,23 +28,23 @@ const items: Record<Target, {
     title: "Semester",
     accent: "var(--accent-lilac)",
     getRange: (now: number) => {
-      const cutoff = new Date(2026, 1, 2, 11, 45).getTime();
-      if (now >= cutoff) {
+      const firstSemesterEnd = new Date(2027, 1, 3, 23, 59, 59).getTime();
+      if (now > firstSemesterEnd) {
         return {
-          start: new Date(2026, 1, 2, 11, 45),
-          end: new Date(2026, 5, 24, 0, 0),
+          start: new Date(2027, 1, 4),
+          end: new Date(2027, 4, 21, 23, 59, 59),
         };
       }
       return {
-        start: new Date(2025, 8, 2),
-        end: new Date(2026, 1, 2, 11, 45),
+        start: new Date(2026, 8, 9),
+        end: new Date(2027, 1, 3, 23, 59, 59),
       };
     },
   },
   year: {
     title: "School year",
-    start: new Date(2025, 8, 2),
-    end: new Date(2026, 5, 24),
+    start: new Date(2026, 8, 9),
+    end: new Date(2027, 4, 21, 23, 59, 59),
     accent: "var(--accent-sky)",
   },
   school: {
