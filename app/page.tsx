@@ -271,7 +271,7 @@ export default function Home() {
           </a>
           <a
             className="footer-contrib"
-            href="https://www.rrashed.com/dean"
+            href="https://www.rrashed.com/"
             target="_blank"
             rel="noopener noreferrer"
           >
