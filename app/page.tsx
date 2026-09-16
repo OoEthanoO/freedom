@@ -29,6 +29,13 @@ const items: ProgressItem[] = [
     hidden: true,
   },
   {
+    id: "winter",
+    title: "Winter break",
+    start: new Date(2026, 8, 9),
+    end: new Date(2026, 11, 18, 23, 59, 59, 999),
+    accent: "var(--accent-peach)",
+  },
+  {
     id: "semester",
     title: "Semester",
     accent: "var(--accent-lilac)",

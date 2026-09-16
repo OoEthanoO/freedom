@@ -15,6 +15,7 @@ const getSemesterEnd = (now: number) => {
 
 const items = {
   summer: { title: "Summer break", end: new Date(2026, 8, 7, 23, 59, 59) },
+  winter: { title: "Winter break", end: new Date(2026, 11, 18, 23, 59, 59, 999) },
   semester: { title: "Semester", getEnd: getSemesterEnd },
   year: { title: "School year", end: new Date(2027, 4, 21, 23, 59, 59) },
   school: { title: "High school", end: new Date(2027, 5, 25) },

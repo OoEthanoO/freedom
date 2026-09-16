@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "freedom",
-  description: "Progress bars for semester, school year, and high school."
+  description: "Progress bars for winter break, semester, school year, and high school."
 };
 
 export default function RootLayout({
