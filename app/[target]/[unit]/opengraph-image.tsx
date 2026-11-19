@@ -8,7 +8,7 @@ export const contentType = "image/png";
 const getSemesterEnd = (now: number) => {
   const firstSemesterEnd = new Date(2027, 1, 3, 23, 59, 59);
   if (now > firstSemesterEnd.getTime()) {
-    return new Date(2027, 4, 21, 23, 59, 59);
+    return new Date(2027, 4, 19, 23, 59, 59);
   }
   return firstSemesterEnd;
 };
@@ -17,8 +17,8 @@ const items = {
   summer: { title: "Summer break", end: new Date(2026, 8, 7, 23, 59, 59) },
   winter: { title: "Winter break", end: new Date(2026, 11, 18, 23, 59, 59, 999) },
   semester: { title: "Semester", getEnd: getSemesterEnd },
-  year: { title: "School year", end: new Date(2027, 4, 21, 23, 59, 59) },
-  school: { title: "High school", end: new Date(2027, 5, 25) },
+  year: { title: "School year", end: new Date(2027, 4, 19, 23, 59, 59) },
+  school: { title: "High school", end: new Date(2027, 4, 19, 23, 59, 59) },
 };
 
 export default async function Image({

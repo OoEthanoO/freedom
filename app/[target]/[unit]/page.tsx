@@ -38,7 +38,7 @@ const items: Record<Target, {
       if (now > firstSemesterEnd) {
         return {
           start: new Date(2027, 1, 4),
-          end: new Date(2027, 4, 21, 23, 59, 59),
+          end: new Date(2027, 4, 19, 23, 59, 59),
         };
       }
       return {
@@ -50,13 +50,13 @@ const items: Record<Target, {
   year: {
     title: "School year",
     start: new Date(2026, 8, 9),
-    end: new Date(2027, 4, 21, 23, 59, 59),
+    end: new Date(2027, 4, 19, 23, 59, 59),
     accent: "var(--accent-sky)",
   },
   school: {
     title: "High school",
     start: new Date(2023, 8, 5),
-    end: new Date(2027, 5, 25),
+    end: new Date(2027, 4, 19, 23, 59, 59),
     accent: "var(--accent-mint)",
   },
 };
