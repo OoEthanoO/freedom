@@ -17,6 +17,8 @@ type ProgressItem = {
   end?: Date;
   /** Kept in the codebase but not rendered on the home page. */
   hidden?: boolean;
+  /** Another item drawn as a thin bar inside this one, at its own dates. */
+  inner?: string;
 };
 
 const items: ProgressItem[] = [
@@ -66,6 +68,7 @@ const items: ProgressItem[] = [
     start: new Date(2023, 8, 5),
     end: new Date(2027, 4, 19, 23, 59, 59),
     accent: "var(--accent-mint)",
+    inner: "year",
   }
 ];
 
@@ -82,6 +85,23 @@ const normalizeRange = (start: number, end: number) => {
 const formatDate = (date: Date) => dateFormat.format(date);
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+const getRange = (item: ProgressItem, now: number) =>
+  item.getRange ? item.getRange(now) : { start: item.start!, end: item.end! };
+
+/** Where an inner item's dates sit on the outer bar, and how far through them we are (all in %). */
+const innerPlacement = (outer: { start: number; end: number }, inner: ProgressItem, now: number) => {
+  const range = getRange(inner, now);
+  const span = outer.end - outer.start;
+  const start = clamp(range.start.getTime(), outer.start, outer.end);
+  const end = clamp(range.end.getTime(), outer.start, outer.end);
+  if (span <= 0 || end <= start) return null;
+  return {
+    left: ((start - outer.start) / span) * 100,
+    width: ((end - start) / span) * 100,
+    progress: clamp((now - start) / (end - start), 0, 1) * 100,
+  };
+};
+
 const calculateDateDiffInDays = (end: Date, now: Date) => {
   const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
   const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
@@ -95,7 +115,7 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const copyTimeoutRef = useRef<number | null>(null);
 
-  const range = item.getRange ? item.getRange(now) : { start: item.start!, end: item.end! };
+  const range = getRange(item, now);
   const startMs = range.start.getTime();
   const endMs = range.end.getTime();
   const normalized = normalizeRange(startMs, endMs);
@@ -103,6 +123,8 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const elapsed = clamp(now - normalized.start, 0, total);
   const ratio = total === 0 ? 0 : elapsed / total;
   const percent = Math.round(ratio * 1000) / 10;
+  const innerItem = item.inner ? items.find(other => other.id === item.inner) : undefined;
+  const inner = innerItem ? innerPlacement(normalized, innerItem, now) : null;
 
   const timeLeftMs = Math.max(0, normalized.end - now);
   const daysLeft = calculateDateDiffInDays(range.end, new Date(now));
@@ -186,8 +208,23 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
         <span>{formatDate(range.start)}</span>
         <span>{formatDate(range.end)}</span>
       </div>
-      <div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+      <div
+        className={`progress-track${inner ? " has-inner" : ""}`}
+        role="progressbar"
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <div className="progress-fill" style={{ width: `${percent}%` }} />
+        {inner && innerItem && (
+          <div
+            className="progress-inner"
+            style={{ left: `${inner.left}%`, width: `${inner.width}%`, "--inner-accent": innerItem.accent } as CSSProperties}
+            title={`${innerItem.title}: ${Math.round(inner.progress * 10) / 10}%`}
+          >
+            <div className="progress-inner-fill" style={{ width: `${inner.progress}%` }} />
+          </div>
+        )}
       </div>
       <div className="meta">
         <div className="dropdown" ref={dropdownRef}>
