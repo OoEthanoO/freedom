@@ -8,6 +8,8 @@ const dateFormat = new Intl.DateTimeFormat("en-US", {
   year: "numeric"
 });
 
+type Marker = { at: Date; title: string };
+
 type ProgressItem = {
   id: string;
   title: string;
@@ -17,8 +19,24 @@ type ProgressItem = {
   end?: Date;
   /** Kept in the codebase but not rendered on the home page. */
   hidden?: boolean;
-  /** Another item drawn as a thin bar inside this one, at its own dates. */
-  inner?: string;
+  /** Dates to tick on this bar, with a short date label under each. */
+  markers?: (now: number) => Marker[];
+};
+
+const winterBreakStart = new Date(2026, 11, 18, 23, 59, 59, 999);
+
+const semesterRange = (now: number) => {
+  const firstSemesterEnd = new Date(2027, 1, 3, 23, 59, 59).getTime();
+  if (now > firstSemesterEnd) {
+    return {
+      start: new Date(2027, 1, 4),
+      end: new Date(2027, 4, 19, 23, 59, 59),
+    };
+  }
+  return {
+    start: new Date(2026, 8, 9),
+    end: new Date(2027, 1, 3, 23, 59, 59),
+  };
 };
 
 const items: ProgressItem[] = [
@@ -34,26 +52,14 @@ const items: ProgressItem[] = [
     id: "winter",
     title: "Winter break",
     start: new Date(2026, 8, 9),
-    end: new Date(2026, 11, 18, 23, 59, 59, 999),
+    end: winterBreakStart,
     accent: "var(--accent-peach)",
   },
   {
     id: "semester",
     title: "Semester",
     accent: "var(--accent-lilac)",
-    getRange: (now: number) => {
-      const firstSemesterEnd = new Date(2027, 1, 3, 23, 59, 59).getTime();
-      if (now > firstSemesterEnd) {
-        return {
-          start: new Date(2027, 1, 4),
-          end: new Date(2027, 4, 19, 23, 59, 59),
-        };
-      }
-      return {
-        start: new Date(2026, 8, 9),
-        end: new Date(2027, 1, 3, 23, 59, 59),
-      };
-    },
+    getRange: semesterRange,
   },
   {
     id: "year",
@@ -68,7 +74,14 @@ const items: ProgressItem[] = [
     start: new Date(2023, 8, 5),
     end: new Date(2027, 4, 19, 23, 59, 59),
     accent: "var(--accent-mint)",
-    inner: "year",
+    markers: (now: number) => {
+      const semester = semesterRange(now);
+      return [
+        { at: semester.start, title: "Semester starts" },
+        { at: winterBreakStart, title: "Winter break starts" },
+        { at: semester.end, title: "Semester ends" },
+      ];
+    },
   }
 ];
 
@@ -83,24 +96,8 @@ const normalizeRange = (start: number, end: number) => {
 };
 
 const formatDate = (date: Date) => dateFormat.format(date);
+const markerFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-const getRange = (item: ProgressItem, now: number) =>
-  item.getRange ? item.getRange(now) : { start: item.start!, end: item.end! };
-
-/** Where an inner item's dates sit on the outer bar, and how far through them we are (all in %). */
-const innerPlacement = (outer: { start: number; end: number }, inner: ProgressItem, now: number) => {
-  const range = getRange(inner, now);
-  const span = outer.end - outer.start;
-  const start = clamp(range.start.getTime(), outer.start, outer.end);
-  const end = clamp(range.end.getTime(), outer.start, outer.end);
-  if (span <= 0 || end <= start) return null;
-  return {
-    left: ((start - outer.start) / span) * 100,
-    width: ((end - start) / span) * 100,
-    progress: clamp((now - start) / (end - start), 0, 1) * 100,
-  };
-};
 
 const calculateDateDiffInDays = (end: Date, now: Date) => {
   const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
@@ -115,7 +112,7 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const copyTimeoutRef = useRef<number | null>(null);
 
-  const range = getRange(item, now);
+  const range = item.getRange ? item.getRange(now) : { start: item.start!, end: item.end! };
   const startMs = range.start.getTime();
   const endMs = range.end.getTime();
   const normalized = normalizeRange(startMs, endMs);
@@ -123,8 +120,15 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
   const elapsed = clamp(now - normalized.start, 0, total);
   const ratio = total === 0 ? 0 : elapsed / total;
   const percent = Math.round(ratio * 1000) / 10;
-  const innerItem = item.inner ? items.find(other => other.id === item.inner) : undefined;
-  const inner = innerItem ? innerPlacement(normalized, innerItem, now) : null;
+  const markers = (item.markers ? item.markers(now) : [])
+    .map(marker => ({
+      ...marker,
+      label: markerFormat.format(marker.at),
+      position: total === 0 ? 0 : clamp((marker.at.getTime() - normalized.start) / total, 0, 1) * 100,
+    }))
+    .sort((a, b) => a.position - b.position);
+  // Keep labels near either end inside the bar's width.
+  const labelAlign = (position: number) => (position > 94 ? "end" : position < 6 ? "start" : "center");
 
   const timeLeftMs = Math.max(0, normalized.end - now);
   const daysLeft = calculateDateDiffInDays(range.end, new Date(now));
@@ -208,24 +212,34 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
         <span>{formatDate(range.start)}</span>
         <span>{formatDate(range.end)}</span>
       </div>
-      <div
-        className={`progress-track${inner ? " has-inner" : ""}`}
-        role="progressbar"
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div className="progress-fill" style={{ width: `${percent}%` }} />
-        {inner && innerItem && (
-          <div
-            className="progress-inner"
-            style={{ left: `${inner.left}%`, width: `${inner.width}%`, "--inner-accent": innerItem.accent } as CSSProperties}
-            title={`${innerItem.title}: ${Math.round(inner.progress * 10) / 10}%`}
-          >
-            <div className="progress-inner-fill" style={{ width: `${inner.progress}%` }} />
-          </div>
-        )}
+      <div className="progress-wrap">
+        <div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+          <div className="progress-fill" style={{ width: `${percent}%` }} />
+        </div>
+        {markers.map(marker => (
+          <span
+            key={marker.title}
+            className="marker-tick"
+            style={{ left: `${marker.position}%` }}
+            title={`${marker.title}: ${formatDate(marker.at)}`}
+            aria-hidden="true"
+          />
+        ))}
       </div>
+      {markers.length > 0 && (
+        <div className="marker-labels">
+          {markers.map((marker, index) => (
+            <span
+              key={marker.title}
+              className={`marker-label align-${labelAlign(marker.position)}${index % 2 ? " lower" : ""}`}
+              style={{ left: `${marker.position}%` }}
+              title={`${marker.title}: ${formatDate(marker.at)}`}
+            >
+              {marker.label}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="meta">
         <div className="dropdown" ref={dropdownRef}>
           <button

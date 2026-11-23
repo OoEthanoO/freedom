@@ -102,26 +102,47 @@ body {
   transition: width 0.6s ease;
 }
 
-/* A bar with another item's bar drawn inside it (high school holds the school year). */
-.progress-track.has-inner {
-  height: 12px;
+/* Date ticks on a bar (the high school bar marks the semester and winter break). */
+.progress-wrap {
+  position: relative;
 }
 
-.progress-inner {
+.marker-tick {
   position: absolute;
-  top: 50%;
-  height: 4px;
-  transform: translateY(-50%);
-  border-radius: 999px;
-  background: rgba(29, 29, 31, 0.16);
-  overflow: hidden;
+  top: -5px;
+  width: 1.5px;
+  height: 16px;
+  margin-left: -0.75px;
+  border-radius: 1px;
+  background: var(--muted);
 }
 
-.progress-inner-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--inner-accent);
-  transition: width 0.6s ease;
+.marker-labels {
+  position: relative;
+  height: 30px;
+  margin-top: -6px;
+}
+
+.marker-label {
+  position: absolute;
+  top: 0;
+  font-size: 0.72rem;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.marker-label.lower {
+  top: 15px;
+}
+
+.marker-label.align-center {
+  transform: translateX(-50%);
+}
+
+.marker-label.align-end {
+  transform: translateX(-100%);
 }
 
 .meta {

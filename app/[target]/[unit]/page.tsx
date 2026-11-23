@@ -17,8 +17,6 @@ const items: Record<Target, {
   start?: Date;
   end?: Date;
   getRange?: (now: number) => { start: Date; end: Date };
-  /** Another item drawn as a thin bar inside this one, at its own dates. */
-  inner?: Target;
 }> = {
   summer: {
     title: "Summer break",
@@ -60,7 +58,6 @@ const items: Record<Target, {
     start: new Date(2023, 8, 5),
     end: new Date(2027, 4, 19, 23, 59, 59),
     accent: "var(--accent-mint)",
-    inner: "year",
   },
 };
 
@@ -100,22 +97,6 @@ const calculateProgress = (start: Date, end: Date): number => {
 };
 
 const formatDate = (date: Date) => dateFormat.format(date);
-
-/** Where an inner item's dates sit on the outer bar, and how far through them we are (all in %). */
-const innerPlacement = (outer: { start: Date; end: Date }, inner: { start: Date; end: Date }) => {
-  const now = Date.now();
-  const outerStart = outer.start.getTime();
-  const span = outer.end.getTime() - outerStart;
-  const clampToOuter = (ms: number) => Math.min(Math.max(ms, outerStart), outer.end.getTime());
-  const start = clampToOuter(inner.start.getTime());
-  const end = clampToOuter(inner.end.getTime());
-  if (span <= 0 || end <= start) return null;
-  return {
-    left: ((start - outerStart) / span) * 100,
-    width: ((end - start) / span) * 100,
-    progress: Math.min(Math.max((now - start) / (end - start), 0), 1) * 100,
-  };
-};
 
 const resolveRange = (item: typeof items[Target]) => {
   if (item.getRange) {
@@ -175,8 +156,6 @@ export default function SharePage({
   const range = resolveRange(item);
   const timeLeft = calculateTimeLeft(range.end, unit);
   const percent = calculateProgress(range.start, range.end);
-  const innerItem = item.inner ? items[item.inner] : undefined;
-  const inner = innerItem ? innerPlacement(range, resolveRange(innerItem)) : null;
 
   return (
     <main className="page">
@@ -192,23 +171,8 @@ export default function SharePage({
             <span>{formatDate(range.start)}</span>
             <span>{formatDate(range.end)}</span>
           </div>
-          <div
-            className={`progress-track${inner ? " has-inner" : ""}`}
-            role="progressbar"
-            aria-valuenow={percent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          >
+          <div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
             <div className="progress-fill" style={{ width: `${percent}%` }} />
-            {inner && innerItem && (
-              <div
-                className="progress-inner"
-                style={{ left: `${inner.left}%`, width: `${inner.width}%`, "--inner-accent": innerItem.accent } as any}
-                title={`${innerItem.title}: ${Math.round(inner.progress * 10) / 10}%`}
-              >
-                <div className="progress-inner-fill" style={{ width: `${inner.progress}%` }} />
-              </div>
-            )}
           </div>
           <div style={{ 
             marginTop: "16px", 
