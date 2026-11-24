@@ -8,7 +8,8 @@ const dateFormat = new Intl.DateTimeFormat("en-US", {
   year: "numeric"
 });
 
-type Marker = { at: Date; title: string };
+/** `bar` is the id of the item whose bar the date belongs to; the tick takes its colour. */
+type Marker = { at: Date; title: string; bar: string };
 
 type ProgressItem = {
   id: string;
@@ -77,13 +78,15 @@ const items: ProgressItem[] = [
     markers: (now: number) => {
       const semester = semesterRange(now);
       return [
-        { at: semester.start, title: "Semester starts" },
-        { at: winterBreakStart, title: "Winter break starts" },
-        { at: semester.end, title: "Semester ends" },
+        { at: semester.start, title: "Semester starts", bar: "semester" },
+        { at: winterBreakStart, title: "Winter break starts", bar: "winter" },
+        { at: semester.end, title: "Semester ends", bar: "semester" },
       ];
     },
   }
 ];
+
+const accentOf = (id: string) => items.find(other => other.id === id)?.accent ?? "var(--muted)";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -124,6 +127,7 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
     .map(marker => ({
       ...marker,
       label: markerFormat.format(marker.at),
+      accent: accentOf(marker.bar),
       position: total === 0 ? 0 : clamp((marker.at.getTime() - normalized.start) / total, 0, 1) * 100,
     }))
     .sort((a, b) => a.position - b.position);
@@ -216,30 +220,31 @@ const ProgressBar = ({ item, now }: { item: ProgressItem; now: number }) => {
         <div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
           <div className="progress-fill" style={{ width: `${percent}%` }} />
         </div>
-        {markers.map(marker => (
+        {/* Every second label drops a line so neighbours never collide; its tick runs down to it. */}
+        {markers.map((marker, index) => (
           <span
             key={marker.title}
-            className="marker-tick"
-            style={{ left: `${marker.position}%` }}
+            className={`marker-tick${index % 2 ? " lower" : ""}`}
+            style={{ left: `${marker.position}%`, "--marker-accent": marker.accent } as CSSProperties}
             title={`${marker.title}: ${formatDate(marker.at)}`}
             aria-hidden="true"
           />
         ))}
+        {markers.length > 0 && (
+          <div className="marker-labels">
+            {markers.map((marker, index) => (
+              <span
+                key={marker.title}
+                className={`marker-label align-${labelAlign(marker.position)}${index % 2 ? " lower" : ""}`}
+                style={{ left: `${marker.position}%`, "--marker-accent": marker.accent } as CSSProperties}
+                title={`${marker.title}: ${formatDate(marker.at)}`}
+              >
+                {marker.label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-      {markers.length > 0 && (
-        <div className="marker-labels">
-          {markers.map((marker, index) => (
-            <span
-              key={marker.title}
-              className={`marker-label align-${labelAlign(marker.position)}${index % 2 ? " lower" : ""}`}
-              style={{ left: `${marker.position}%` }}
-              title={`${marker.title}: ${formatDate(marker.at)}`}
-            >
-              {marker.label}
-            </span>
-          ))}
-        </div>
-      )}
       <div className="meta">
         <div className="dropdown" ref={dropdownRef}>
           <button

@@ -102,7 +102,9 @@ body {
   transition: width 0.6s ease;
 }
 
-/* Date ticks on a bar (the high school bar marks the semester and winter break). */
+/* Date ticks on a bar (the high school bar marks the semester and winter break).
+   Each tick takes the colour of the bar its date belongs to (--marker-accent);
+   its label uses a darker shade of that colour so the pastel stays readable. */
 .progress-wrap {
   position: relative;
 }
@@ -110,31 +112,47 @@ body {
 .marker-tick {
   position: absolute;
   top: -5px;
-  width: 1.5px;
+  width: 2px;
   height: 16px;
-  margin-left: -0.75px;
+  margin-left: -1px;
   border-radius: 1px;
-  background: var(--muted);
+  background: var(--marker-accent, var(--muted));
 }
 
+/* A dropped label sits 15px lower, so its tick is 15px longer and still ends
+   just above its date. */
+.marker-tick.lower {
+  height: 31px;
+}
+
+/* The dates hang under the bar without taking room, so the buttons sit the
+   same 12px below this bar as below every other one (the buttons are on the
+   left, the dates near the right end, where this school year falls). */
 .marker-labels {
-  position: relative;
-  height: 30px;
-  margin-top: -6px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0;
 }
 
 .marker-label {
   position: absolute;
-  top: 0;
+  top: 4px;
   font-size: 0.72rem;
   line-height: 1;
   color: var(--muted);
+  color: color-mix(in srgb, var(--marker-accent, var(--muted)) 55%, var(--ink));
+  font-weight: 500;
   white-space: nowrap;
+  /* Hides a dropped tick where it passes behind a neighbour's date on a narrow bar. */
+  background: var(--bg);
+  padding: 2px;
   font-variant-numeric: tabular-nums;
 }
 
 .marker-label.lower {
-  top: 15px;
+  top: 19px;
 }
 
 .marker-label.align-center {
@@ -339,5 +357,13 @@ body {
   .meta {
     flex-direction: column;
     gap: 6px;
+  }
+
+  /* Here the buttons are centred under the bar, where a wide "seconds left"
+     button could reach the dates, so the dates keep a strip of their own. */
+  .marker-labels {
+    position: relative;
+    top: auto;
+    height: 35px;
   }
 }
